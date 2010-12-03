@@ -269,5 +269,10 @@ class Pac:
             self._logger.error(p)
 
 if __name__ == "__main__":
-    pac = Pac('pac.ini')
-    pac.gen()
+    if not os.path.isfile('pac.ini'):
+        print "Please rename pac.example.ini to pac.ini before you run this program"
+        raw_input('Hit ENTER to exit.')
+    else:
+        pac = Pac('pac.ini')
+        pac.gen()
+
