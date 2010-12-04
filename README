@@ -1,6 +1,5 @@
 $Id$
 
-
 程序的运行
 
 将 pac.example.ini改为pac.ini，编辑pac.ini，进行一些配置即可，pac.ini
