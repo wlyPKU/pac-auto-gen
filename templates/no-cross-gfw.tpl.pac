@@ -51,8 +51,8 @@ ${:else:}$\
 ${:endif}$\
 }
 function FindProxyForURL(url, host) {
-    var _dnsDomainIs = function(a,b){return dnsDomainIs(a,b);}
-    var _isInNet = function(a,b,c){return isInNet(a,b,c);}
+    var _dnsDomainIs = dnsDomainIs;
+    var _isInNet = isInNet;
     var i = 0;
     var ips = '';
 ${for proxy_name in _proxy_names:}$\

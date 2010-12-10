@@ -155,9 +155,9 @@ class Pac:
             if line[0] == '|':
                 line = line[1:]
                 if line.startswith('http:'):
-                    gfw_http_list.append('|'+line)
+                    gfw_http_list.append(line)
                 elif line.startswith('https:'):
-                    gfw_https_list.append('|'+line)
+                    gfw_https_list.append(line)
             elif line[0] == '.':
                 gfw_list.append(line[1:])
             else:

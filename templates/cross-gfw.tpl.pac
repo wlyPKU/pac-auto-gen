@@ -51,8 +51,8 @@ ${:else:}$\
 ${:endif}$\
 }
 function FindProxyForURL(url, host) {
-    var _dnsDomainIs = function(a,b){return dnsDomainIs(a,b);}
-    var _isInNet = function(a,b,c){return isInNet(a,b,c);}
+    var _dnsDomainIs = dnsDomainIs;
+    var _isInNet = isInNet;
     var i = 0;
     var ips = '';
 ${for proxy_name in _proxy_names:}$\
@@ -115,11 +115,11 @@ function isBlockedByGFW(url) {
     var _shExpMatch = shExpMatch;
     if(proto == 'http://')
         for(i=${_gfw_http_list_length}$; i--;)
-            if(_shExpMatch(url, _http_list[i].substr(1)+'*'))
+            if(_shExpMatch(url, _http_list[i]+'*'))
                 return true;
     else if(proto == 'https:/')
         for(i=${_gfw_https_list_length}$; i--;)
-            if(_shExpMatch(url, _https_list[i].substr(1)+'*'))
+            if(_shExpMatch(url, _https_list[i]+'*'))
                 return true;
     for(i=${_gfw_regexp_list_length}$; i--;) 
         if(_regexp_list[i].test(url)) 
