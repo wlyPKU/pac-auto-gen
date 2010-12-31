@@ -138,44 +138,53 @@ class Pac:
         fp.close()
         self._logger.info("write hosts file `%s` successfully", self._config['system-host-file-path'])
     
+    def _parse_rule(self, rule):
+        if rule[-1] == '|':
+            rule = rule[:-1]
+        #if rule[0] == '.':
+            #rule = rule[1:]
+        if rule.startswith('||'):
+            r = rule[2:].strip('/')
+            p = r.find('/')
+            if p > 0:
+                r = r[:p]
+            return ('domain', r)
+        if rule[0] == '|':
+            if rule.startswith('|http:'):
+                return ('http', rule[1:])
+            elif rule.startswith('|https:'):
+                return ('https', rule[1:])
+        if rule[0] == '/' and rule[-1] == '/':
+            return ('regexp', rule)
+        return ('keyword', rule)
 
     def _init_gfw(self):
         page = self._fetch(self._config['gfw-list-file-url'], self._config['gfw-list-file-proxy'])
-        autoproxy_list = base64.decodestring(page).split("\n")
-        gfw_list = []
-        gfw_regexp_list = []
-        gfw_http_list = []
-        gfw_https_list = []
-        for line in autoproxy_list[1:]:
+        autoproxy_rules = base64.decodestring(page).split("\n")
+        gfwlist = {'keyword':[], 'domain':[], 'regexp':[], 'http':[], 'https':[], 'ignore':{}}
+        for key in gfwlist.keys():
+            if key == 'ignore':
+                continue
+            gfwlist['ignore'][key] = []
+        for line in autoproxy_rules[1:]:
             line = line.strip(' +*')
-            if line == '' or line[0] == '!' or line.startswith('@@'):
+            if line == '' or line[0] == '!':
                 continue
-            if line.startswith('||'):
+            if line.startswith('@@'):
+                type, element = self._parse_rule(line[2:])
+                gfwlist['ignore'][type].append(element)
                 continue
-            if line[0] == '|':
-                line = line[1:]
-                if line.startswith('http:'):
-                    gfw_http_list.append(line)
-                elif line.startswith('https:'):
-                    gfw_https_list.append(line)
-            elif line[0] == '.':
-                gfw_list.append(line[1:])
-            else:
-                if line[0]=='/' and line[-1] =='/':
-                    gfw_regexp_list.append(line)
-                    continue
-                if line[-1] == '|':
-                    line = line[:-1]
-                gfw_list.append(line)
+            type, element = self._parse_rule(line)
+            gfwlist[type].append(element)
+        
+        for key in gfwlist.keys():
+            if key == 'ignore':
+                continue
+            gfwlist[key] = list(set(gfwlist[key]))
+            gfwlist['ignore'][key] = list(set(gfwlist['ignore'][key]))
+            
         self._vars['_gfw_proxy'] = self._config['gfw-proxy']
-        self._vars['_gfw_list'] = "['"+"','".join(gfw_list)+"']"
-        self._vars['_gfw_regexp_list'] = "["+",".join(gfw_regexp_list)+"]"
-        self._vars['_gfw_http_list'] = "['"+"','".join(gfw_http_list)+"']"
-        self._vars['_gfw_https_list'] = "['"+"','".join(gfw_https_list)+"']"
-        self._vars['_gfw_list_length'] = len(gfw_list)
-        self._vars['_gfw_regexp_list_length'] = len(gfw_regexp_list)
-        self._vars['_gfw_http_list_length'] = len(gfw_http_list)
-        self._vars['_gfw_https_list_length'] = len(gfw_https_list)
+        self._vars['_gfwlist'] = gfwlist
 
     def _init_cernet(self):
         page = self._fetch(self._config['cernet-free-ip-list-url'],
