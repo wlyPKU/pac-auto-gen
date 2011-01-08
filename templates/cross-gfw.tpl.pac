@@ -40,6 +40,7 @@ ${if _ipv6_proxy:}$\
 ${:endif}$\
 ${if _use_cernet_no_free_ip_proxy:}$\
     //for cernet no free ip
+    var _cernet_free_ip_list = ${_cernet_free_ip_list}$;
     for(i=${_cernet_free_ip_list_length}$; i--;)
         if(_isInNet(host, _cernet_free_ip_list[i][0], _cernet_free_ip_list[i][1]))
             return ${_normal_proxy}$;
@@ -89,6 +90,7 @@ ${if _ipv6_proxy:}$\
 ${:endif}$\
 ${if _use_cernet_no_free_ip_proxy:}$\
     //for cernet no free ip
+    var _cernet_free_ip_list = ${_cernet_free_ip_list}$;
     for(i=${_cernet_free_ip_list_length}$; i--;)
         if(_isInNet(host, _cernet_free_ip_list[i][0], _cernet_free_ip_list[i][1]))
             return ${_normal_proxy}$;

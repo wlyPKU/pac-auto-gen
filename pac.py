@@ -95,10 +95,10 @@ class Pac:
                 content = open(url).read()
             if url.startswith("file://"):
                 content = open(url[7:]).read()
-        except IOError, e:
+        except Error, e:
             raise ReadFileError(url)
         else:
-            if content:
+            if content is not None:
                 self._logger.info("read file `%s` successfully", url)
                 return content
 
@@ -117,7 +117,10 @@ class Pac:
             raise FetchError(url, pacproxy)
         finally:
             web.close()
-        self._logger.info("fetch page `%s` through proxy `%s` successfully", url, pacproxy)
+        if page == '':
+            self._logger.warning("fetch page `%s` through proxy `%s` successfully, but it is empty", url, pacproxy)
+        else:
+            self._logger.info("fetch page `%s` through proxy `%s` successfully", url, pacproxy)
         return page
 
     def _write_hosts(self):
