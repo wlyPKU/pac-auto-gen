@@ -46,14 +46,17 @@ class Configure(ConfigParser.ConfigParser):
             return None
 
 def urlproxy(pacproxy):
-    proxy = pacproxy.lower().strip('"\'')
-    if proxy.startswith('direct'):
-        return None
-    if proxy.startswith('proxy'):
-        return [('http', proxy.replace('proxy ', 'http://')),
-                ('https', proxy.replace('proxy ', 'http://'))]
-    if proxy.startswith('socks'):
-        return [('socks', proxy.replace('socks ', 'http://'))]
+    proxy_str = pacproxy.lower().strip('"\'')
+    proxies = proxy_str.split(';')
+    for proxy in proxies:
+        proxy = proxy.strip()
+        if proxy.startswith('direct'):
+            return None
+        if proxy.startswith('proxy'):
+            return [('http', proxy.replace('proxy ', 'http://')),
+                    ('https', proxy.replace('proxy ', 'http://'))]
+        #if proxy.startswith('socks'):
+            #return [('socks', proxy.replace('socks ', 'http://'))]
     return None
 
 class Error(Exception):
@@ -125,8 +128,8 @@ class Pac:
 
     def _write_hosts(self):
         page = self._fetch(self._config['ipv6-host-file-url'], self._config['ipv6-host-file-proxy'])
-        fp = open(self._config['system-host-file-path'], 'w')
         lines = page.split('\n')
+        hosts = []
         for line in lines:
             line = line.strip()
             if line == '':
@@ -135,7 +138,11 @@ class Pac:
                 continue
             if not line[0].isdigit() and not line[0] == ':':
                 continue
-            print >>fp, line
+            hosts.append(line)
+        if len(hosts) == 0:
+            self._logger.warning("`%s` is empty, there is no host record in it", self._config['ipv6-host-file-url'])
+        fp = open(self._config['system-host-file-path'], 'w')
+        print >>fp, "\n".join(hosts)
         fp.write("\n")
         fp.write(self._config['my-hosts'])
         fp.close()
@@ -200,6 +207,9 @@ class Pac:
                 free_ip_list.append("['%s','%s']" % (match.group(1), match.group(2)))
         self._vars['_cernet_free_ip_list'] = "["+ ",".join(free_ip_list)+"]"
         self._vars['_cernet_free_ip_list_length'] = len(free_ip_list)
+        if len(free_ip_list) == 0:
+            self._logger.warning("cernet free ip list is empty, content of `%s`:\n%s\n", 
+                self._config['cernet-free-ip-list-url'], page)
     
     def _get_config(self, var_name):
         key = var_name.replace('_', '-')
